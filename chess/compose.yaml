@@ -1,0 +1,15 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: chess-app:latest
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_SHELL_INTERACTIVE_ENABLED=true
+      - SPRING_SHELL_CONTEXT_CLOSE=false
+    stdin_open: true
+    tty: true
+    restart: unless-stopped
