@@ -13,3 +13,14 @@ services:
     stdin_open: true
     tty: true
     restart: unless-stopped
+  gradle:
+    image: gradle:9.4.1-jdk21
+    working_dir: /home/gradle/project
+    volumes:
+      - .:/home/gradle/project
+      - gradle-cache:/home/gradle/.gradle
+    ports:
+      - "8080:8080"
+
+volumes:
+  gradle-cache:
