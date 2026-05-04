@@ -1,4 +1,4 @@
-package com.example.chess;
+package com.example.chess.Commands;
 
 import org.springframework.stereotype.Component;
 import org.springframework.shell.core.command.annotation.Command;
