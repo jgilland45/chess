@@ -90,4 +90,14 @@ public class Board {
     public int getNumCols() {
         return numCols;
     }
+
+    public void movePiece(int fromRow, int fromCol, int toRow, int toCol) {
+        // Move a piece from one position to another
+        if (fromRow >= 0 && fromRow < numRows && fromCol >= 0 && fromCol < numCols &&
+            toRow >= 0 && toRow < numRows && toCol >= 0 && toCol < numCols) {
+            Piece piece = pieces[fromRow][fromCol];
+            pieces[toRow][toCol] = piece;
+            pieces[fromRow][fromCol] = null;
+        }
+    }
 }
