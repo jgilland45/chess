@@ -3,6 +3,7 @@ package com.example.chess.Game;
 import java.util.List;
 
 import com.example.chess.Enums.PieceType;
+import com.example.chess.GameObjects.Piece;
 
 public class SanMove {
     private final PieceType pieceType;
@@ -87,6 +88,7 @@ public class SanMove {
     }
 
     private boolean matches(Move move, GameState state) {
+        // Castling moves identified by flags
         if (castleKingside != move.isCastleKingside()) {
             return false;
         }
@@ -96,13 +98,87 @@ public class SanMove {
         if (castleKingside || castleQueenside) {
             return true;
         }
+
+        // If target square doesn't match, it's not a match
         if (move.getToRow() != targetRow || move.getToCol() != targetCol) {
             return false;
         }
+
+        // If promotion specified, it must match
         if (promotion != null && promotion != move.getPromotion()) {
             return false;
         }
         // TODO: use piece type and disambiguation when legal move generation is implemented.
+
+        // Ensure the piece type matches the piece on the source square
+        Piece piece = state.getBoard().getPieces()[move.getFromRow()][move.getFromCol()];
+        if (piece == null || piece.getType() != pieceType) {
+            return false;
+        }
+
+        // Ensure the color of the piece matches the side to move
+        if (piece.getColor() != state.getSideToMove()) {
+            return false;
+        }
+
+        // Capture, check, and checkmate flags must match the resulting position
+        if (capture != move.isCapture()) {
+            return false;
+        }
+        if (check != move.isCheck()) {
+            return false;
+        }
+        if (checkmate != move.isCheckmate()) {
+            return false;
+        }
+
+        // Handle disambiguation - if specified, the move must match the file/rank of the source square
+        if (disambiguationFile != null && move.getFromCol() != disambiguationFile) {
+            return false;
+        }
+        if (disambiguationRank != null && move.getFromRow() != disambiguationRank) {
+            return false;
+        }
+
+        if (move.getFromRow() == targetRow && move.getFromCol() == targetCol) {
+            return false; // Can't move to the same square
+        }
+
+        if (move.getPromotion() != null && move.getPromotion() != promotion) {
+            return false; // Promotion piece must match if specified
+        }
+
         return true;
+    }
+
+    @Override
+    public String toString() {
+        // StringBuilder sb = new StringBuilder();
+        // if (castleKingside) {
+        //     sb.append("O-O");
+        // } else if (castleQueenside) {
+        //     sb.append("O-O-O");
+        // } else {
+        //     if (pieceType != PieceType.PAWN) {
+        //         sb.append(pieceType.getSanSymbol());
+        //     }
+        //     sb.append((char) ('a' + targetCol));
+        //     sb.append(targetRow + 1);
+        // }
+        // return sb.toString();
+
+        return "SanMove{" +
+                "pieceType=" + pieceType +
+                ", targetRow=" + targetRow +
+                ", targetCol=" + targetCol +
+                ", capture=" + capture +
+                ", check=" + check +
+                ", checkmate=" + checkmate +
+                ", promotion=" + promotion +
+                ", castleKingside=" + castleKingside +
+                ", castleQueenside=" + castleQueenside +
+                ", disambiguationFile=" + disambiguationFile +
+                ", disambiguationRank=" + disambiguationRank +
+                '}';
     }
 }

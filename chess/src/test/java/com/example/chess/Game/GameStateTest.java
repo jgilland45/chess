@@ -31,7 +31,7 @@ class GameStateTest {
         GameState state = GameState.initial();
         Piece piece = state.getBoard().getPieceAt(6, 4);
 
-        state.applyMove(new Move(6, 4, 4, 4, null, false, false, false));
+        state.applyMove(new Move(6, 4, 4, 4, null, false, false, false, false, false));
 
         assertNull(state.getBoard().getPieceAt(6, 4));
         assertEquals(piece, state.getBoard().getPieceAt(4, 4));
@@ -42,7 +42,7 @@ class GameStateTest {
         GameState state = GameState.initial();
         Piece piece = state.getBoard().getPieceAt(6, 4);
 
-        state.applyMove(new Move(6, 4, 8, 4, null, false, false, false));
+        state.applyMove(new Move(6, 4, 8, 4, null, false, false, false, false, false));
 
         assertEquals(piece, state.getBoard().getPieceAt(6, 4));
         assertNull(state.getBoard().getPieceAt(8, 4));

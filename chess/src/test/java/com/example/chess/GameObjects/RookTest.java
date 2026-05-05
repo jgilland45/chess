@@ -14,32 +14,8 @@ class RookTest {
     void startsWithCastleMoves() {
         Rook rook = new Rook(Color.WHITE);
 
-        assertArrayEquals(new MoveType[] { MoveType.ORTHOGONAL, MoveType.CASTLE_KINGSIDE, MoveType.CASTLE_QUEENSIDE },
+        assertArrayEquals(new MoveType[] { MoveType.ORTHOGONAL },
             rook.getValidMoveTypes());
-    }
-
-    @Test
-    void removeCastleMovesLeavesOnlyOrthogonal() {
-        Rook rook = new Rook(Color.BLACK);
-        rook.removeCastleMoves();
-
-        assertArrayEquals(new MoveType[] { MoveType.ORTHOGONAL }, rook.getValidMoveTypes());
-    }
-
-    @Test
-    void removeQueensideCastleMoveLeavesKingsideCastle() {
-        Rook rook = new Rook(Color.WHITE);
-        rook.removeQueensideCastleMove();
-
-        assertArrayEquals(new MoveType[] { MoveType.ORTHOGONAL, MoveType.CASTLE_KINGSIDE }, rook.getValidMoveTypes());
-    }
-
-    @Test
-    void removeKingsideCastleMoveLeavesQueensideCastle() {
-        Rook rook = new Rook(Color.BLACK);
-        rook.removeKingsideCastleMove();
-
-        assertArrayEquals(new MoveType[] { MoveType.ORTHOGONAL, MoveType.CASTLE_QUEENSIDE }, rook.getValidMoveTypes());
     }
 
     @Test

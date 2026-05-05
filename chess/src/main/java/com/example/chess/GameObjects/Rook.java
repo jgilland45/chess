@@ -10,32 +10,7 @@ public class Rook extends Piece {
 
         // Set valid move types for a rook
         this.validMoveTypes = new MoveType[] {
-            MoveType.ORTHOGONAL,
-            MoveType.CASTLE_KINGSIDE,
-            MoveType.CASTLE_QUEENSIDE
-        };
-    }
-
-    public void removeCastleMoves() {
-        // Remove castling move types after the rook has moved
-        this.validMoveTypes = new MoveType[] {
             MoveType.ORTHOGONAL
-        };
-    }
-
-    public void removeQueensideCastleMove() {
-        // Remove queenside castling move type after the rook has moved
-        this.validMoveTypes = new MoveType[] {
-            MoveType.ORTHOGONAL,
-            MoveType.CASTLE_KINGSIDE
-        };
-    }
-
-    public void removeKingsideCastleMove() {
-        // Remove kingside castling move type after the rook has moved
-        this.validMoveTypes = new MoveType[] {
-            MoveType.ORTHOGONAL,
-            MoveType.CASTLE_QUEENSIDE
         };
     }
 

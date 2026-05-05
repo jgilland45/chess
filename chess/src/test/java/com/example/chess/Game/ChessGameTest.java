@@ -16,7 +16,7 @@ class ChessGameTest {
 
     @Test
     void applySanMovesMatchingMove() {
-        LegalMoveGenerator generator = state -> List.of(new Move(6, 4, 4, 4, null, false, false, false));
+        LegalMoveGenerator generator = state -> List.of(new Move(6, 4, 4, 4, null, false, false, false, false, false));
         ChessGame game = new ChessGame(generator);
         Piece piece = game.getBoard().getPieceAt(6, 4);
 
@@ -36,8 +36,8 @@ class ChessGameTest {
 
     @Test
     void applySanHonorsPromotionMatch() {
-        Move rookPromo = new Move(6, 0, 0, 0, PieceType.ROOK, false, false, false);
-        Move queenPromo = new Move(6, 0, 0, 0, PieceType.QUEEN, false, false, false);
+        Move rookPromo = new Move(6, 0, 0, 0, PieceType.ROOK, false, false,false, false, false);
+        Move queenPromo = new Move(6, 0, 0, 0, PieceType.QUEEN, false, false, false, false, false);
         LegalMoveGenerator generator = state -> List.of(rookPromo, queenPromo);
         ChessGame game = new ChessGame(generator);
 
@@ -49,7 +49,7 @@ class ChessGameTest {
 
     @Test
     void applySanCastleMovesKing() {
-        Move castleMove = new Move(7, 4, 7, 6, null, false, true, false);
+        Move castleMove = new Move(7, 4, 7, 6, null, false, true, false, false, false);
         LegalMoveGenerator generator = state -> List.of(castleMove);
         ChessGame game = new ChessGame(generator);
         Piece king = game.getBoard().getPieceAt(7, 4);

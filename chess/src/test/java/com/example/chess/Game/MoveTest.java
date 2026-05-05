@@ -12,7 +12,7 @@ class MoveTest {
 
     @Test
     void exposesConstructorValues() {
-        Move move = new Move(6, 4, 4, 4, PieceType.QUEEN, true, true, false);
+        Move move = new Move(6, 4, 4, 4, PieceType.QUEEN, true, true, false, false, false);
 
         assertEquals(6, move.getFromRow());
         assertEquals(4, move.getFromCol());

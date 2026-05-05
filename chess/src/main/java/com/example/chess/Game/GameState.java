@@ -70,5 +70,16 @@ public class GameState {
     public void applyMove(Move move) {
         board.movePiece(move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol());
         // TODO: update castling rights, en passant, clocks, and side to move.
+
+        // TODO: update castling rights based on move
+
+        // TODO: update en passant target based on move
+
+        // TODO: update halfmove clock based on move
+
+        if (sideToMove == Color.BLACK) {
+            fullmoveNumber++;
+        }
+        sideToMove = (sideToMove == Color.WHITE) ? Color.BLACK : Color.WHITE;
     }
 }

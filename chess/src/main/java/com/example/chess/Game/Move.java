@@ -9,17 +9,21 @@ public class Move {
     private final int toCol;
     private final PieceType promotion;
     private final boolean capture;
+    private final boolean isCheck;
+    private final boolean isCheckmate;
     private final boolean castleKingside;
     private final boolean castleQueenside;
 
     public Move(int fromRow, int fromCol, int toRow, int toCol, PieceType promotion, boolean capture,
-            boolean castleKingside, boolean castleQueenside) {
+            boolean isCheck, boolean isCheckmate, boolean castleKingside, boolean castleQueenside) {
         this.fromRow = fromRow;
         this.fromCol = fromCol;
         this.toRow = toRow;
         this.toCol = toCol;
         this.promotion = promotion;
         this.capture = capture;
+        this.isCheck = isCheck;
+        this.isCheckmate = isCheckmate;
         this.castleKingside = castleKingside;
         this.castleQueenside = castleQueenside;
     }
@@ -46,6 +50,14 @@ public class Move {
 
     public boolean isCapture() {
         return capture;
+    }
+
+    public boolean isCheck() {
+        return isCheck;
+    }
+
+    public boolean isCheckmate() {
+        return isCheckmate;
     }
 
     public boolean isCastleKingside() {

@@ -55,6 +55,7 @@ public class Board {
     public void displayBoard() {
         // Display the chess board
         for (int i = 0; i < numRows; i++) {
+            System.out.print((numRows - i) + " ");
             for (int j = 0; j < numCols; j++) {
                 if (pieces[i][j] == null) {
                     System.out.print("-- ");
@@ -64,6 +65,11 @@ public class Board {
             }
             System.out.println();
         }
+        System.out.print(" ");
+        for (int j = 0; j < numCols; j++) {
+            System.out.print(" " + (char)('a' + j) + " ");
+        }
+        System.out.println();
     }
 
     public Piece getPieceAt(int row, int col) {

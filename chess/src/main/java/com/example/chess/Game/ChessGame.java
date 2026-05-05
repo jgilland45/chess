@@ -9,7 +9,7 @@ public class ChessGame {
     private final LegalMoveGenerator moveGenerator;
 
     public ChessGame() {
-        this(new PermissiveLegalMoveGenerator());
+        this(new MoveGenerator());
     }
 
     ChessGame(LegalMoveGenerator moveGenerator) {
@@ -28,6 +28,7 @@ public class ChessGame {
         if (matchingMove == null) {
             throw new IllegalArgumentException("Illegal move: " + notation);
         }
+        System.out.println("Applying move: " + sanMove);
         state.applyMove(matchingMove);
     }
 }
