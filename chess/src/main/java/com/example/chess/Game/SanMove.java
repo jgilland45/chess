@@ -79,6 +79,7 @@ public class SanMove {
     }
 
     public Move findMatch(List<Move> moves, GameState state) {
+        // TODO: implement disambiguation for moves when multiple pieces of the same type can move to the same square
         for (Move move : moves) {
             if (matches(move, state)) {
                 return move;
@@ -108,7 +109,6 @@ public class SanMove {
         if (promotion != null && promotion != move.getPromotion()) {
             return false;
         }
-        // TODO: use piece type and disambiguation when legal move generation is implemented.
 
         // Ensure the piece type matches the piece on the source square
         Piece piece = state.getBoard().getPieces()[move.getFromRow()][move.getFromCol()];

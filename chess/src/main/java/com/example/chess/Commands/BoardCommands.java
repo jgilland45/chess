@@ -27,6 +27,12 @@ public class BoardCommands {
 		game.getBoard().displayBoard();
 	}
 
+	@Command(name = "state", description = "Print the current game state", group = "Board",
+			help = "A command that prints the current game state. Usage: state")
+	public void printGameState() {
+		game.printGameState();
+	}
+
 	@Command(name = "move", description = "Move a piece on the chess board", group = "Board",
 			help = "A command that moves a piece on the chess board using algebraic notation. Usage: move <notation>")
 	public void movePiece(
@@ -38,7 +44,7 @@ public class BoardCommands {
 		}
 		try {
 			game.applySan(notation);
-			game.getBoard().displayBoard();
+			game.printGameState();
 		} catch (IllegalArgumentException | UnsupportedOperationException ex) {
 			System.out.println("Error: " + ex.getMessage());
 		}

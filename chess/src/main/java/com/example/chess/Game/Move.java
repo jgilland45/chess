@@ -67,4 +67,20 @@ public class Move {
     public boolean isCastleQueenside() {
         return castleQueenside;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append((char) ('a' + fromCol));
+        sb.append(8 - fromRow);
+        sb.append(" -> ");
+        sb.append((char) ('a' + toCol));
+        sb.append(8 - toRow);
+        if (promotion != null) {
+            sb.append("=");
+            sb.append(promotion.getSanSymbol());
+
+        }
+        return sb.toString();
+    }
 }

@@ -1,7 +1,12 @@
 package com.example.chess.Game;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.example.chess.Enums.Color;
+import com.example.chess.Enums.PieceType;
 import com.example.chess.GameObjects.Board;
+import com.example.chess.GameObjects.Piece;
 import com.example.chess.GameObjects.Position;
 
 public class GameState {
@@ -11,7 +16,7 @@ public class GameState {
     private boolean whiteCastleQueenside;
     private boolean blackCastleKingside;
     private boolean blackCastleQueenside;
-    private Position enPassantTarget;
+    private List<Position> enPassantTargets;
     private int halfmoveClock;
     private int fullmoveNumber;
 
@@ -22,9 +27,14 @@ public class GameState {
         this.whiteCastleQueenside = true;
         this.blackCastleKingside = true;
         this.blackCastleQueenside = true;
-        this.enPassantTarget = null;
+        this.enPassantTargets = new ArrayList<>();
         this.halfmoveClock = 0;
         this.fullmoveNumber = 1;
+
+        updateCastlingRights(Color.WHITE);
+        updateEnPassantTargets(Color.WHITE);
+        updateCastlingRights(Color.BLACK);
+        updateEnPassantTargets(Color.BLACK);
     }
 
     public static GameState initial() {
@@ -55,8 +65,8 @@ public class GameState {
         return blackCastleQueenside;
     }
 
-    public Position getEnPassantTarget() {
-        return enPassantTarget;
+    public List<Position> getEnPassantTargets() {
+        return enPassantTargets;
     }
 
     public int getHalfmoveClock() {
@@ -69,17 +79,218 @@ public class GameState {
 
     public void applyMove(Move move) {
         board.movePiece(move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol());
-        // TODO: update castling rights, en passant, clocks, and side to move.
+        
+        // update white castling rights
+        updateCastlingRights(Color.WHITE);
 
-        // TODO: update castling rights based on move
+        // update black castling rights
+        updateCastlingRights(Color.BLACK);
 
-        // TODO: update en passant target based on move
+        // update white en passant targets
+        updateEnPassantTargets(Color.WHITE);
+    
+        // update black en passant targets
+        updateEnPassantTargets(Color.BLACK);
 
-        // TODO: update halfmove clock based on move
+        // update halfmove clock (50 move rule)
+        if (move.isCapture() || board.getPieceAt(move.getToRow(), move.getToCol()).getType() == PieceType.PAWN) {
+            halfmoveClock = 0;
+        } else {
+            halfmoveClock++;
+        }
 
+        // update fullmove number (number of full moves) and side to move
         if (sideToMove == Color.BLACK) {
             fullmoveNumber++;
         }
         sideToMove = (sideToMove == Color.WHITE) ? Color.BLACK : Color.WHITE;
+    }
+
+    private void updateCastlingRights(Color color) {
+        int homeRow;
+        boolean castleKingside = true;
+        boolean castleQueenside = true;
+        if (color == Color.WHITE) {
+            homeRow = 7;
+        } else {
+            homeRow = 0;
+        }
+
+        // check that king has not moved from initial square
+        Piece king = board.getPieceAt(homeRow, 4);
+        if (king == null || king.getType() != PieceType.KING) {
+            castleKingside = false;
+            castleQueenside = false;
+        } else if (king.hasMoved()) {
+            castleKingside = false;
+            castleQueenside = false;
+        } else {
+            // check that kingside rook has not moved from initial square
+            Piece kingsideRook = board.getPieceAt(homeRow, 7);
+            if (kingsideRook == null || kingsideRook.getType() != PieceType.ROOK || kingsideRook.hasMoved()) {
+                castleKingside = false;
+            }
+            // check that queenside rook has not moved from initial square
+            Piece queensideRook = board.getPieceAt(homeRow, 0);
+            if (queensideRook == null || queensideRook.getType() != PieceType.ROOK || queensideRook.hasMoved()) {
+                castleQueenside = false;
+            }
+            // check there are no pieces between king and rooks
+            if (board.getPieceAt(homeRow, 5) != null || board.getPieceAt(homeRow, 6) != null) {
+                castleKingside = false;
+            }
+            if (board.getPieceAt(homeRow, 1) != null || board.getPieceAt(homeRow, 2) != null || board.getPieceAt(homeRow, 3) != null) {
+                castleQueenside = false;
+            }
+            // check if king is in check
+            if (isInCheck(color)) {
+                castleKingside = false;
+                castleQueenside = false;
+            }
+            // check that squares the king would pass through are not attacked
+            if (isSquareAttackedBy(homeRow, 5, (color == Color.WHITE) ? Color.BLACK : Color.WHITE)) {
+                castleKingside = false;
+            }
+            if (isSquareAttackedBy(homeRow, 6, (color == Color.WHITE) ? Color.BLACK : Color.WHITE)) {
+                castleKingside = false;
+            }
+            if (isSquareAttackedBy(homeRow, 3, (color == Color.WHITE) ? Color.BLACK : Color.WHITE)) {
+                castleQueenside = false;
+            }
+            if (isSquareAttackedBy(homeRow, 2, (color == Color.WHITE) ? Color.BLACK : Color.WHITE)) {
+                castleQueenside = false;
+            }
+            if (isSquareAttackedBy(homeRow, 1, (color == Color.WHITE) ? Color.BLACK : Color.WHITE)) {
+                castleQueenside = false;
+            }
+        }
+
+        if (color == Color.WHITE) {
+            whiteCastleKingside = castleKingside;
+            whiteCastleQueenside = castleQueenside;
+        } else {
+            blackCastleKingside = castleKingside;
+            blackCastleQueenside = castleQueenside;
+        }
+    }
+
+    private void updateEnPassantTargets(Color color) {
+        // go through all pawns of the given color and check if any of them can be captured en passant
+        // this will look a little weird, since if you pass in "White",
+        // you will be checking for black pawns that can be captured en passant by white pawns
+
+        enPassantTargets.clear();
+
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = board.getPieceAt(row, col);
+                if (piece != null && piece.getType() == PieceType.PAWN && piece.getColor() != color) {
+                    // check if this pawn can be captured en passant by any of the given color's pawns
+                    int direction = (color == Color.WHITE) ? -1 : 1;
+                    if (col > 0) {
+                        Piece leftPawn = board.getPieceAt(row + direction, col - 1);
+                        if (leftPawn != null && leftPawn.getType() == PieceType.PAWN && leftPawn.getColor() == color) {
+                            enPassantTargets.add(new Position(row, col));
+                        }
+                    }
+                    if (col < 7) {
+                        Piece rightPawn = board.getPieceAt(row + direction, col + 1);
+                        if (rightPawn != null && rightPawn.getType() == PieceType.PAWN && rightPawn.getColor() == color) {
+                            enPassantTargets.add(new Position(row, col));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    public boolean isSquareAttackedBy(int i, int j, Color color) {
+        // go through all pieces of the given color and check if any of them can move to the given square
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                Piece piece = board.getPieceAt(row, col);
+                if (piece != null && piece.getColor() == color) {
+                    MoveGenerator moveGenerator = new MoveGenerator();
+                    System.out.println("Calling from isSquareAttackedBy for " + piece + " at " + row + "," + col);
+                    List<Move> moves = moveGenerator.generateLegalMoves(this);
+                    for (Move move : moves) {
+                        if (move.getToRow() == i && move.getToCol() == j) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean isInCheck(Color color) {
+        // Find the king of the given color
+        Position kingPosition = null;
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                Piece piece = board.getPieceAt(i, j);
+                if (piece != null && piece.getType() == PieceType.KING && piece.getColor() == color) {
+                    kingPosition = new Position(i, j);
+                    break;
+                }
+            }
+            if (kingPosition != null) {
+                break;
+            }
+        }
+
+        if (kingPosition == null) {
+            // This should not happen in a valid game state, but if it does, we can consider the king to be in check
+            return true;
+        }
+
+        if (isSquareAttackedBy(kingPosition.getRow(), kingPosition.getCol(), (color == Color.WHITE) ? Color.BLACK : Color.WHITE)) {
+            return true;
+        }
+
+        return false;
+
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Side to move: ").append(sideToMove).append("\n");
+        sb.append("Castling rights: ");
+        if (whiteCastleKingside) {
+            sb.append("White kingside ");
+        } if (whiteCastleQueenside) {
+            sb.append("White queenside ");
+        } if (blackCastleKingside) {
+            sb.append("Black kingside ");
+        } if (blackCastleQueenside) {
+            sb.append("Black queenside ");
+        }
+        sb.append("\n");
+        sb.append("En passant targets: ");
+        for (Position pos : enPassantTargets) {
+            sb.append((char)('a' + pos.getCol())).append(8 - pos.getRow()).append(" ");
+        }
+        sb.append("\n");
+        sb.append("Halfmove clock: ").append(halfmoveClock).append("\n");
+        sb.append("Fullmove number: ").append(fullmoveNumber).append("\n");
+        sb.append("Board:\n");
+        sb.append(board.toString());
+        return sb.toString();
+    }
+
+    public GameState copy() {
+        GameState copy = new GameState(new Board());
+        copy.board.setPieces(board.getPieces());
+        copy.sideToMove = sideToMove;
+        copy.whiteCastleKingside = whiteCastleKingside;
+        copy.whiteCastleQueenside = whiteCastleQueenside;
+        copy.blackCastleKingside = blackCastleKingside;
+        copy.blackCastleQueenside = blackCastleQueenside;
+        copy.enPassantTargets = new ArrayList<>(enPassantTargets);
+        copy.halfmoveClock = halfmoveClock;
+        copy.fullmoveNumber = fullmoveNumber;
+        return copy;
     }
 }

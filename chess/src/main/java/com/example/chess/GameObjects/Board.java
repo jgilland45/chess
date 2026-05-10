@@ -53,23 +53,27 @@ public class Board {
     }
 
     public void displayBoard() {
-        // Display the chess board
+        System.out.println(getBoardString());
+    }
+
+    public String getBoardString() {
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < numRows; i++) {
-            System.out.print((numRows - i) + " ");
+            sb.append((numRows - i)).append(" ");
             for (int j = 0; j < numCols; j++) {
                 if (pieces[i][j] == null) {
-                    System.out.print("-- ");
+                    sb.append("-- ");
                 } else {
-                    System.out.print(pieces[i][j].toString() + " ");
+                    sb.append(pieces[i][j].toString()).append(" ");
                 }
             }
-            System.out.println();
+            sb.append("\n");
         }
-        System.out.print(" ");
+        sb.append(" ");
         for (int j = 0; j < numCols; j++) {
-            System.out.print(" " + (char)('a' + j) + " ");
+            sb.append(" ").append((char)('a' + j)).append(" ");
         }
-        System.out.println();
+        return sb.toString();
     }
 
     public Piece getPieceAt(int row, int col) {
@@ -105,5 +109,10 @@ public class Board {
             pieces[toRow][toCol] = piece;
             pieces[fromRow][fromCol] = null;
         }
+    }
+
+    @Override
+    public String toString() {
+        return getBoardString();
     }
 }

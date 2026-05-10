@@ -21,9 +21,15 @@ public class ChessGame {
         return state.getBoard();
     }
 
+    public void printGameState() {
+        System.out.println(state);
+    }
+
     public void applySan(String notation) {
         SanMove sanMove = SanParser.parse(notation);
+        System.out.println("Calling from applySan for SAN move: " + sanMove);
         List<Move> legalMoves = moveGenerator.generateLegalMoves(state);
+        System.out.println("Legal moves: " + legalMoves);
         Move matchingMove = sanMove.findMatch(legalMoves, state);
         if (matchingMove == null) {
             throw new IllegalArgumentException("Illegal move: " + notation);
