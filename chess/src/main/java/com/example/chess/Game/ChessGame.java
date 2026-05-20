@@ -28,7 +28,7 @@ public class ChessGame {
     public void applySan(String notation) {
         SanMove sanMove = SanParser.parse(notation);
         System.out.println("Calling from applySan for SAN move: " + sanMove);
-        List<Move> legalMoves = moveGenerator.generateLegalMoves(state);
+        List<Move> legalMoves = moveGenerator.generateLegalMoves(state, true);
         System.out.println("Legal moves: " + legalMoves);
         Move matchingMove = sanMove.findMatch(legalMoves, state);
         if (matchingMove == null) {

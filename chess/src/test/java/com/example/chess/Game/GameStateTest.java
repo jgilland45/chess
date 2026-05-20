@@ -21,7 +21,7 @@ class GameStateTest {
         assertEquals(true, state.canWhiteCastleQueenside());
         assertEquals(true, state.canBlackCastleKingside());
         assertEquals(true, state.canBlackCastleQueenside());
-        assertNull(state.getEnPassantTarget());
+        assertNull(state.getEnPassantTargets());
         assertEquals(0, state.getHalfmoveClock());
         assertEquals(1, state.getFullmoveNumber());
     }

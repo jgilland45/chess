@@ -212,7 +212,9 @@ public class GameState {
                 if (piece != null && piece.getColor() == color) {
                     MoveGenerator moveGenerator = new MoveGenerator();
                     System.out.println("Calling from isSquareAttackedBy for " + piece + " at " + row + "," + col);
-                    List<Move> moves = moveGenerator.generateLegalMoves(this);
+                    // Generate pseudo-legal moves for the piece,
+                    // since we are only checking if the square is attacked, we don't need to worry about king safety
+                    List<Move> moves = moveGenerator.generateLegalMoves(this, false);
                     for (Move move : moves) {
                         if (move.getToRow() == i && move.getToCol() == j) {
                             return true;

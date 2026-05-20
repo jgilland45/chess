@@ -12,7 +12,7 @@ import com.example.chess.GameObjects.Piece;
 
 public class MoveGenerator implements LegalMoveGenerator {
     @Override
-    public List<Move> generateLegalMoves(GameState state) {
+    public List<Move> generateLegalMoves(GameState state, boolean validateKingSafety) {
         Board board = state.getBoard();
         Piece[][] pieces = board.getPieces();
         List<Move> moves = new ArrayList<>();
@@ -25,12 +25,12 @@ public class MoveGenerator implements LegalMoveGenerator {
                 }
 
                 switch (piece.getType()) {
-                    case PAWN -> addValidPawnMoves(moves, piece, fromRow, fromCol);
-                    case KING -> addValidKingMoves(moves, piece, fromRow, fromCol, state);
-                    case ROOK -> addValidRookMoves(moves, piece, fromRow, fromCol);
-                    case BISHOP -> addValidBishopMoves(moves, piece, fromRow, fromCol);
-                    case KNIGHT -> addValidKnightMoves(moves, piece, fromRow, fromCol);
-                    case QUEEN -> addValidQueenMoves(moves, piece, fromRow, fromCol);
+                    case PAWN -> addValidPawnMoves(moves, piece, fromRow, fromCol, state, validateKingSafety);
+                    case KING -> addValidKingMoves(moves, piece, fromRow, fromCol, state, validateKingSafety);
+                    case ROOK -> addValidRookMoves(moves, piece, fromRow, fromCol, state, validateKingSafety);
+                    case BISHOP -> addValidBishopMoves(moves, piece, fromRow, fromCol, state, validateKingSafety);
+                    case KNIGHT -> addValidKnightMoves(moves, piece, fromRow, fromCol, state, validateKingSafety);
+                    case QUEEN -> addValidQueenMoves(moves, piece, fromRow, fromCol, state, validateKingSafety);
                     default -> throw new IllegalStateException("Unexpected piece type: " + piece.getType());
                 }
             }
@@ -39,7 +39,43 @@ public class MoveGenerator implements LegalMoveGenerator {
         return moves;
     }
 
-    private void addValidPawnMoves(List<Move> moves, Piece piece, int fromRow, int fromCol) {
+    private void addMoveToMoves(List<Move> moves, Move move) {
+        // Assumes move is already validated for legality (e.g. does not expose own king to check, is not obstructed, etc.)
+        if (move != null) {
+            moves.add(move);
+        }
+    }
+
+    private void addToMoves(List<Move> moves, List<Move> newMoves) {
+        for (Move move : newMoves) {
+            addMoveToMoves(moves, move);
+        }
+    }
+
+    private List<Move> validateMoves(List<Move> moves, GameState state, boolean validateKingSafety) {
+        List<Move> validMoves = new ArrayList<>(moves);
+        validMoves = validateNotExposeKing(validMoves, state, validateKingSafety);
+        validMoves = validateNotObstructed(validMoves, state);
+        validMoves = validatePromotion(validMoves, state, validateKingSafety);
+        // TODO: add rest of validations
+
+        // System.out.println("Valid moves after validation: " + validMoves);
+
+        return validMoves;
+    }
+
+    private void addAndValidateMove(List<Move> moves, Move move, GameState state, boolean validateKingSafety) {
+        List<Move> movelist = new ArrayList<>();
+        movelist.add(move);
+
+        movelist = validateMoves(movelist, state, validateKingSafety);
+
+        if (movelist != null) {
+            addToMoves(moves, movelist);
+        }
+    }
+
+    private void addValidPawnMoves(List<Move> moves, Piece piece, int fromRow, int fromCol, GameState state, boolean validateKingSafety) {
         Color color = piece.getColor();
         if (color == Color.WHITE) {
             if (fromCol < 0 || fromCol >= 8) {
@@ -51,12 +87,14 @@ public class MoveGenerator implements LegalMoveGenerator {
             // Handle double move
             if (!piece.hasMoved() && fromRow == 6) {
                 int targetRow = fromRow - 2;
-                moves.add(new Move(fromRow, fromCol, targetRow, fromCol, null, false, false, false, false, false));
+                Move newMove = new Move(fromRow, fromCol, targetRow, fromCol, null, false, false, false, false, false);
+                addAndValidateMove(moves, newMove, state, validateKingSafety);
                 // TODO: check for obstructions, promotion, captures (incl en pessant), checks, and checkmates
             }
             // Handle single move
             int targetRow = fromRow - 1;
-            moves.add(new Move(fromRow, fromCol, targetRow, fromCol, null, false, false, false, false, false));
+            Move newMove = new Move(fromRow, fromCol, targetRow, fromCol, null, false, false, false, false, false);
+            addAndValidateMove(moves, newMove, state, validateKingSafety);
             // TODO: check for obstructions, promotion, captures (incl en pessant), checks, and checkmates
         } else {
             if (fromCol < 0 || fromCol >= 8) {
@@ -68,17 +106,19 @@ public class MoveGenerator implements LegalMoveGenerator {
             // Handle double move
             if (!piece.hasMoved() && fromRow == 1) {
                 int targetRow = fromRow + 2;
-                moves.add(new Move(fromRow, fromCol, targetRow, fromCol, null, false, false, false, false, false));
+                Move newMove = new Move(fromRow, fromCol, targetRow, fromCol, null, false, false, false, false, false);
+                addAndValidateMove(moves, newMove, state, validateKingSafety);
                 // TODO: check for obstructions, promotion, captures (incl en pessant), checks, and checkmates
             }
             // Handle single move
             int targetRow = fromRow + 1;
-            moves.add(new Move(fromRow, fromCol, targetRow, fromCol, null, false, false, false, false, false));
+            Move newMove = new Move(fromRow, fromCol, targetRow, fromCol, null, false, false, false, false, false);
+            addAndValidateMove(moves, newMove, state, validateKingSafety);
             // TODO: check for obstructions, promotion, captures (incl en pessant), checks, and checkmates
         }
     }
 
-    private void addValidKingMoves(List<Move> moves, Piece piece, int fromRow, int fromCol, GameState state) {
+    private void addValidKingMoves(List<Move> moves, Piece piece, int fromRow, int fromCol, GameState state, boolean validateKingSafety) {
         if (fromCol < 0 || fromCol >= 8) {
             return; // Invalid column
         }
@@ -96,7 +136,8 @@ public class MoveGenerator implements LegalMoveGenerator {
                 if (toRow < 0 || toRow >= 8 || toCol < 0 || toCol >= 8) {
                     continue;
                 }
-                moves.add(new Move(fromRow, fromCol, toRow, toCol, null, false, false, false, false, false));
+                Move newMove = new Move(fromRow, fromCol, toRow, toCol, null, false, false, false, false, false);
+                addAndValidateMove(moves, newMove, state, validateKingSafety);
                 // TODO: check for obstructions, captures, checks, and checkmates
             }
         }
@@ -104,12 +145,14 @@ public class MoveGenerator implements LegalMoveGenerator {
         // queenside castling
         if (canCastleQueenside(state, piece.getColor())) {
             System.out.println("Can castle queenside");
-            moves.add(new Move(fromRow, fromCol, fromRow, fromCol - 2, null, false, false, false, false, false));
+            Move newMove = new Move(fromRow, fromCol, fromRow, fromCol - 2, null, false, false, false, false, false);
+            addAndValidateMove(moves, newMove, state, validateKingSafety);
         }
         // kingside castling
         if (canCastleKingside(state, piece.getColor())) {
             System.out.println("Can castle kingside");
-            moves.add(new Move(fromRow, fromCol, fromRow, fromCol + 2, null, false, false, false, false, false));
+            Move newMove = new Move(fromRow, fromCol, fromRow, fromCol + 2, null, false, false, false, false, false);
+            addAndValidateMove(moves, newMove, state, validateKingSafety);
         }
     }
 
@@ -129,7 +172,7 @@ public class MoveGenerator implements LegalMoveGenerator {
         }
     }
 
-    private void addValidRookMoves(List<Move> moves, Piece piece, int fromRow, int fromCol) {
+    private void addValidRookMoves(List<Move> moves, Piece piece, int fromRow, int fromCol, GameState state, boolean validateKingSafety) {
         if (fromCol < 0 || fromCol >= 8) {
             return; // Invalid column
         }
@@ -141,18 +184,20 @@ public class MoveGenerator implements LegalMoveGenerator {
             if (toRow == fromRow) {
                 continue;
             }
-            moves.add(new Move(fromRow, fromCol, toRow, fromCol, null, false, false, false, false, false));
+            Move newMove = new Move(fromRow, fromCol, toRow, fromCol, null, false, false, false, false, false);
+            addAndValidateMove(moves, newMove, null, validateKingSafety);
         }
         for (int toCol = 0; toCol < 8; toCol++) {
             if (toCol == fromCol) {
                 continue;
             }
-            moves.add(new Move(fromRow, fromCol, fromRow, toCol, null, false, false, false, false, false));
+            Move newMove = new Move(fromRow, fromCol, fromRow, toCol, null, false, false, false, false, false);
+            addAndValidateMove(moves, newMove, null, validateKingSafety);
         }
         // TODO: check for obstructions, captures, checks, and checkmates
     }
     
-    private void addValidBishopMoves(List<Move> moves, Piece piece, int fromRow, int fromCol) {
+    private void addValidBishopMoves(List<Move> moves, Piece piece, int fromRow, int fromCol, GameState state, boolean validateKingSafety) {
         if (fromCol < 0 || fromCol >= 8) {
             return; // Invalid column
         }
@@ -169,7 +214,8 @@ public class MoveGenerator implements LegalMoveGenerator {
                     int toRow = fromRow + offset * rowSign;
                     int toCol = fromCol + offset * colSign;
                     if (toRow >= 0 && toRow < 8 && toCol >= 0 && toCol < 8) {
-                        moves.add(new Move(fromRow, fromCol, toRow, toCol, null, false, false, false, false, false));
+                        Move newMove = new Move(fromRow, fromCol, toRow, toCol, null, false, false, false, false, false);
+                        addAndValidateMove(moves, newMove, null, validateKingSafety);
                     }
                 }
             }
@@ -177,7 +223,7 @@ public class MoveGenerator implements LegalMoveGenerator {
         // TODO: check for obstructions, captures, checks, and checkmates
     }
 
-    private void addValidKnightMoves(List<Move> moves, Piece piece, int fromRow, int fromCol) {
+    private void addValidKnightMoves(List<Move> moves, Piece piece, int fromRow, int fromCol, GameState state, boolean validateKingSafety) {
         if (fromCol < 0 || fromCol >= 8) {
             return; // Invalid column
         }
@@ -193,15 +239,16 @@ public class MoveGenerator implements LegalMoveGenerator {
             int toRow = fromRow + offset[0];
             int toCol = fromCol + offset[1];
             if (toRow >= 0 && toRow < 8 && toCol >= 0 && toCol < 8) {
-                moves.add(new Move(fromRow, fromCol, toRow, toCol, null, false, false, false, false, false));
+                Move newMove = new Move(fromRow, fromCol, toRow, toCol, null, false, false, false, false, false);
+                addAndValidateMove(moves, newMove, null, validateKingSafety);
             }
         }
         // TODO: check for obstructions, captures, checks, and checkmates
     }
 
-    private void addValidQueenMoves(List<Move> moves, Piece piece, int fromRow, int fromCol) {
-        addValidRookMoves(moves, piece, fromRow, fromCol);
-        addValidBishopMoves(moves, piece, fromRow, fromCol);
+    private void addValidQueenMoves(List<Move> moves, Piece piece, int fromRow, int fromCol, GameState state, boolean validateKingSafety) {
+        addValidRookMoves(moves, piece, fromRow, fromCol, state, validateKingSafety);
+        addValidBishopMoves(moves, piece, fromRow, fromCol, state, validateKingSafety);
         // TODO: check for obstructions, captures, checks, and checkmates
     }
 
@@ -221,94 +268,147 @@ public class MoveGenerator implements LegalMoveGenerator {
     // 5. If move results in check, ensure the opponent's king is attacked in the resulting position
     // 6. If move results in checkmate, ensure the opponent's king is attacked and has no legal moves in the resulting position
 
-    private Move validateNotExposeKing(Move move, GameState state) {
+    private List<Move> validateNotExposeKing(List<Move> moves, GameState state, boolean validateKingSafety) {
         /*
             Checks if the move would expose the player's own king to check. If it does, returns null. Otherwise, returns the move.
         */
-       if (move == null) {
+       if (moves == null || moves.isEmpty()) {
            return null;
        }
+       if (!validateKingSafety) {
+           return new ArrayList<>(moves);
+       }
 
-       GameState copyState = state.copy();
-       copyState.applyMove(move);
-        if (copyState.isInCheck(state.getSideToMove())) {
-            return null;
-        }
-        return move;
+       List<Move> validMoves = new ArrayList<>();
+
+       for (Move move : moves) {
+            if (move == null) {
+                continue;
+            }
+            if (state == null) {
+                continue;
+            }
+
+            // TODO: fix copy to be a deep copy to avoid mutating the original state when applying the move
+            GameState copyState = state.copy();
+            copyState.applyMove(move);
+            if (!copyState.isInCheck(state.getSideToMove())) {
+                validMoves.add(move);
+            }
+       } 
+       return validMoves;
     }
 
-    private Move validateNotObstructed(Move move, GameState state) {
+    private List<Move> validateNotObstructed(List<Move> moves, GameState state) {
         /*
             Checks if the move is obstructed by other pieces. If it is, returns null. Otherwise, returns the move.
         */
-        if (move == null) {
+        if (moves == null || moves.isEmpty()) {
             return null;
         }
 
-        Piece[][] pieces = state.getBoard().getPieces();
-        int fromRow = move.getFromRow();
-        int fromCol = move.getFromCol();
-        int toRow = move.getToRow();
-        int toCol = move.getToCol();
+        List<Move> validMoves = new ArrayList<>();
 
-        Piece piece = pieces[fromRow][fromCol];
-        if (piece == null) {
-            return null; // No piece to move
-        }
-
-        // Check for obstructions along the path of the move (for sliding pieces)
-        if (piece.getType() == PieceType.BISHOP || piece.getType() == PieceType.ROOK || piece.getType() == PieceType.QUEEN) {
-            int rowDirection = Integer.compare(toRow, fromRow);
-            int colDirection = Integer.compare(toCol, fromCol);
-            int currentRow = fromRow + rowDirection;
-            int currentCol = fromCol + colDirection;
-            while (currentRow != toRow || currentCol != toCol) {
-                if (pieces[currentRow][currentCol] != null) {
-                    return null; // Path is obstructed
-                }
-                currentRow += rowDirection;
-                currentCol += colDirection;
+        for (Move move : moves) {
+            if (move == null) {
+                continue;
             }
-        }
 
-        // Check for capture on the target square
-        Piece targetPiece = pieces[toRow][toCol];
-        if (targetPiece != null && targetPiece.getColor() == piece.getColor()) {
-            return null; // Can't capture own piece
-        } else if (targetPiece != null && targetPiece.getColor() != piece.getColor()) { // Capture enemy piece
-            move = new Move(move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol(),
-                move.getPromotion(), true, move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside());
-        }
+            if (state == null) {
+                continue;
+            }
 
-        return move;
+            Piece[][] pieces = state.getBoard().getPieces();
+            int fromRow = move.getFromRow();
+            int fromCol = move.getFromCol();
+            int toRow = move.getToRow();
+            int toCol = move.getToCol();
+
+            Piece piece = pieces[fromRow][fromCol];
+            if (piece == null) {
+                continue; // No piece to move
+            }
+
+            // Check for obstructions along the path of the move (for sliding pieces)
+            if (piece.getType() == PieceType.BISHOP || piece.getType() == PieceType.ROOK || piece.getType() == PieceType.QUEEN) {
+                int rowDirection = Integer.compare(toRow, fromRow);
+                int colDirection = Integer.compare(toCol, fromCol);
+                int currentRow = fromRow + rowDirection;
+                int currentCol = fromCol + colDirection;
+                while (currentRow != toRow || currentCol != toCol) {
+                    if (pieces[currentRow][currentCol] != null) {
+                        break; // Path is obstructed
+                    }
+                    currentRow += rowDirection;
+                    currentCol += colDirection;
+                }
+            }
+
+            // Check for capture on the target square
+            Piece targetPiece = pieces[toRow][toCol];
+            if (targetPiece != null && targetPiece.getColor() == piece.getColor()) {
+                continue; // Can't capture own piece
+            } else if (targetPiece != null && targetPiece.getColor() != piece.getColor()) { // Capture enemy piece
+                move = new Move(
+                    move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol(),
+                    move.getPromotion(), true, move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside()
+                );
+            }
+
+            validMoves.add(move);
+        }
+        return validMoves;
     }
 
-    private Move validatePromotion(Move move, GameState state) {
+    private List<Move> validatePromotion(List<Move> moves, GameState state, boolean validateKingSafety) {
         /*
             If the move is a pawn move to the promotion rank, adds valid promotion options. Otherwise, returns the move.
         */
-        if (move == null) {
+        if (moves == null || moves.isEmpty()) {
             return null;
         }
 
-        Piece[][] pieces = state.getBoard().getPieces();
-        int fromRow = move.getFromRow();
-        int fromCol = move.getFromCol();
-        int toRow = move.getToRow();
-        int toCol = move.getToCol();
+        List<Move> validMoves = new ArrayList<>();
 
-        Piece piece = pieces[fromRow][fromCol];
-        if (piece == null || piece.getType() != PieceType.PAWN) {
-            return move; // Not a pawn move
+        for (Move move : moves) {
+            if (move == null) {
+                continue;
+            }
+
+            if (state == null) {
+                continue;
+            }
+
+            Piece[][] pieces = state.getBoard().getPieces();
+            int fromRow = move.getFromRow();
+            int fromCol = move.getFromCol();
+            int toRow = move.getToRow();
+            int toCol = move.getToCol();
+
+            Piece piece = pieces[fromRow][fromCol];
+            if (piece == null || piece.getType() != PieceType.PAWN) {
+                validMoves.add(move); // Not a pawn move
+                continue;
+            }
+
+            if (isPromotionRank(piece.getColor(), toRow)) {
+                // For simplicity, we'll just default to queen promotion for now. In a full implementation, we would want to allow the player to choose.
+                Move promoteToQueenMove = new Move(fromRow, fromCol, toRow, toCol, PieceType.QUEEN, move.isCapture(), move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside());
+                Move promoteToRookMove = new Move(fromRow, fromCol, toRow, toCol, PieceType.ROOK, move.isCapture(), move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside());
+                Move promoteToBishopMove = new Move(fromRow, fromCol, toRow, toCol, PieceType.BISHOP, move.isCapture(), move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside());
+                Move promoteToKnightMove = new Move(fromRow, fromCol, toRow, toCol, PieceType.KNIGHT, move.isCapture(), move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside());
+
+                // Validate each promotion option and add valid ones to the list
+                List<Move> promotionMoves = List.of(promoteToQueenMove, promoteToRookMove, promoteToBishopMove, promoteToKnightMove);
+
+                promotionMoves = validateMoves(promotionMoves, state, validateKingSafety);
+
+                validMoves.addAll(promotionMoves.stream().filter(m -> m != null).toList());
+                continue;
+            }
+
+            validMoves.add(move);
         }
-
-        if (isPromotionRank(piece.getColor(), toRow)) {
-            // For simplicity, we'll just default to queen promotion for now. In a full implementation, we would want to allow the player to choose.
-            return new Move(fromRow, fromCol, toRow, toCol, PieceType.QUEEN, move.isCapture(), move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside());
-
-            // TODO: add options for other promotion types and handle user choice
-        }
-
-        return move;
+        return validMoves;
     }
 }

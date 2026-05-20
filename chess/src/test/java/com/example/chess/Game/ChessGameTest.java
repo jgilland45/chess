@@ -16,7 +16,7 @@ class ChessGameTest {
 
     @Test
     void applySanMovesMatchingMove() {
-        LegalMoveGenerator generator = state -> List.of(new Move(6, 4, 4, 4, null, false, false, false, false, false));
+        LegalMoveGenerator generator = (state, validateKingSafety) -> List.of(new Move(6, 4, 4, 4, null, false, false, false, false, false));
         ChessGame game = new ChessGame(generator);
         Piece piece = game.getBoard().getPieceAt(6, 4);
 
@@ -28,7 +28,7 @@ class ChessGameTest {
 
     @Test
     void applySanThrowsWhenNoLegalMoveMatches() {
-        LegalMoveGenerator generator = state -> List.of();
+        LegalMoveGenerator generator = (state, validateKingSafety) -> List.of();
         ChessGame game = new ChessGame(generator);
 
         assertThrows(IllegalArgumentException.class, () -> game.applySan("e4"));
@@ -38,7 +38,7 @@ class ChessGameTest {
     void applySanHonorsPromotionMatch() {
         Move rookPromo = new Move(6, 0, 0, 0, PieceType.ROOK, false, false,false, false, false);
         Move queenPromo = new Move(6, 0, 0, 0, PieceType.QUEEN, false, false, false, false, false);
-        LegalMoveGenerator generator = state -> List.of(rookPromo, queenPromo);
+        LegalMoveGenerator generator = (state, validateKingSafety) -> List.of(rookPromo, queenPromo);
         ChessGame game = new ChessGame(generator);
 
         game.applySan("a8=Q");
@@ -50,7 +50,7 @@ class ChessGameTest {
     @Test
     void applySanCastleMovesKing() {
         Move castleMove = new Move(7, 4, 7, 6, null, false, true, false, false, false);
-        LegalMoveGenerator generator = state -> List.of(castleMove);
+        LegalMoveGenerator generator = (state, validateKingSafety) -> List.of(castleMove);
         ChessGame game = new ChessGame(generator);
         Piece king = game.getBoard().getPieceAt(7, 4);
 
