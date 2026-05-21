@@ -2,6 +2,7 @@ package com.example.chess.GameObjects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 import org.junit.jupiter.api.Test;
 
 import com.example.chess.Enums.Color;
+import com.example.chess.GameObjects.Position;
 
 class BoardTest {
 
@@ -65,6 +67,29 @@ class BoardTest {
         Piece[][] wrong = new Piece[7][8];
 
         assertThrows(AssertionError.class, () -> board.setPieces(wrong));
+    }
+
+    @Test
+    void copyCreatesIndependentBoard() {
+        Board board = new Board();
+        Piece original = board.getPieceAt(6, 0);
+        original.setHasMoved(true);
+        original.setPosition(new Position(0, 0));
+
+        Board copy = board.copy();
+
+        assertNotSame(board, copy);
+        Piece copied = copy.getPieceAt(6, 0);
+        assertNotSame(original, copied);
+        assertEquals(original.getType(), copied.getType());
+        assertEquals(original.getColor(), copied.getColor());
+        assertTrue(copied.hasMoved());
+        assertNotSame(original.getPosition(), copied.getPosition());
+        assertEquals(original.getPosition().getRow(), copied.getPosition().getRow());
+        assertEquals(original.getPosition().getCol(), copied.getPosition().getCol());
+
+        original.setHasMoved(false);
+        assertTrue(copied.hasMoved());
     }
 
     private int countPieces(Piece[][] pieces) {

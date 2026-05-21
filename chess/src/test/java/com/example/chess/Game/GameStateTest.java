@@ -1,13 +1,16 @@
 package com.example.chess.Game;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import org.junit.jupiter.api.Test;
 
 import com.example.chess.Enums.Color;
 import com.example.chess.GameObjects.Piece;
+import com.example.chess.GameObjects.Position;
 
 class GameStateTest {
 
@@ -21,7 +24,8 @@ class GameStateTest {
         assertEquals(true, state.canWhiteCastleQueenside());
         assertEquals(true, state.canBlackCastleKingside());
         assertEquals(true, state.canBlackCastleQueenside());
-        assertNull(state.getEnPassantTargets());
+        assertNotNull(state.getEnPassantTargets());
+        assertEquals(0, state.getEnPassantTargets().size());
         assertEquals(0, state.getHalfmoveClock());
         assertEquals(1, state.getFullmoveNumber());
     }
@@ -46,5 +50,25 @@ class GameStateTest {
 
         assertEquals(piece, state.getBoard().getPieceAt(6, 4));
         assertNull(state.getBoard().getPieceAt(8, 4));
+    }
+
+    @Test
+    void copyCreatesIndependentGameState() {
+        GameState state = GameState.initial();
+        state.getEnPassantTargets().add(new Position(3, 3));
+
+        GameState copy = state.copy();
+
+        assertNotSame(state.getBoard(), copy.getBoard());
+
+        Piece originalPawn = state.getBoard().getPieceAt(6, 0);
+        Piece copiedPawn = copy.getBoard().getPieceAt(6, 0);
+        assertNotSame(originalPawn, copiedPawn);
+
+        state.getEnPassantTargets().add(new Position(4, 4));
+        assertEquals(1, copy.getEnPassantTargets().size());
+
+        originalPawn.setHasMoved(true);
+        assertFalse(copiedPawn.hasMoved());
     }
 }

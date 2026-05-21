@@ -93,6 +93,19 @@ public class Board {
         this.pieces = pieces;
     }
 
+    public Board copy() {
+        Board copy = new Board();
+        Piece[][] copiedPieces = new Piece[numRows][numCols];
+        for (int row = 0; row < numRows; row++) {
+            for (int col = 0; col < numCols; col++) {
+                Piece piece = pieces[row][col];
+                copiedPieces[row][col] = (piece == null) ? null : piece.copy();
+            }
+        }
+        copy.setPieces(copiedPieces);
+        return copy;
+    }
+
     public int getNumRows() {
         return numRows;
     }

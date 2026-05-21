@@ -15,6 +15,13 @@ public class Bishop extends Piece {
     }
 
     @Override
+    public Piece copy() {
+        Bishop copy = new Bishop(color);
+        copyCommonFields(copy);
+        return copy;
+    }
+
+    @Override
     public String toString() {
         String colorInitial = (color == Color.WHITE) ? "W" : "B";
         return colorInitial + "B";

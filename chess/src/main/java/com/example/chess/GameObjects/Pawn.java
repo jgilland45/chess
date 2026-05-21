@@ -31,6 +31,13 @@ public class Pawn extends Piece {
     }
 
     @Override
+    public Piece copy() {
+        Pawn copy = new Pawn(color);
+        copyCommonFields(copy);
+        return copy;
+    }
+
+    @Override
     public String toString() {
         String colorInitial = (color == Color.WHITE) ? "W" : "B";
         return colorInitial + "P";

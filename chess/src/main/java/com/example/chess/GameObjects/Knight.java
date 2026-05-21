@@ -15,6 +15,13 @@ public class Knight extends Piece {
     }
 
     @Override
+    public Piece copy() {
+        Knight copy = new Knight(color);
+        copyCommonFields(copy);
+        return copy;
+    }
+
+    @Override
     public String toString() {
         String colorInitial = (color == Color.WHITE) ? "W" : "B";
         return colorInitial + "N";

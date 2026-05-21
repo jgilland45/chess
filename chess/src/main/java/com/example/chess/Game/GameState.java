@@ -78,8 +78,20 @@ public class GameState {
     }
 
     public void applyMove(Move move) {
+        applyMoveInternal(move, true);
+    }
+
+    void applyMoveForValidation(Move move) {
+        applyMoveInternal(move, false);
+    }
+
+    private void applyMoveInternal(Move move, boolean updateDerivedState) {
         board.movePiece(move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol());
-        
+
+        if (!updateDerivedState) {
+            return;
+        }
+
         // update white castling rights
         updateCastlingRights(Color.WHITE);
 
@@ -88,12 +100,13 @@ public class GameState {
 
         // update white en passant targets
         updateEnPassantTargets(Color.WHITE);
-    
+
         // update black en passant targets
         updateEnPassantTargets(Color.BLACK);
 
         // update halfmove clock (50 move rule)
-        if (move.isCapture() || board.getPieceAt(move.getToRow(), move.getToCol()).getType() == PieceType.PAWN) {
+        Piece movedPiece = board.getPieceAt(move.getToRow(), move.getToCol());
+        if (move.isCapture() || (movedPiece != null && movedPiece.getType() == PieceType.PAWN)) {
             halfmoveClock = 0;
         } else {
             halfmoveClock++;
@@ -205,22 +218,28 @@ public class GameState {
     }
 
     public boolean isSquareAttackedBy(int i, int j, Color color) {
-        // go through all pieces of the given color and check if any of them can move to the given square
-        for (int row = 0; row < 8; row++) {
-            for (int col = 0; col < 8; col++) {
-                Piece piece = board.getPieceAt(row, col);
-                if (piece != null && piece.getColor() == color) {
-                    MoveGenerator moveGenerator = new MoveGenerator();
-                    System.out.println("Calling from isSquareAttackedBy for " + piece + " at " + row + "," + col);
-                    // Generate pseudo-legal moves for the piece,
-                    // since we are only checking if the square is attacked, we don't need to worry about king safety
-                    List<Move> moves = moveGenerator.generateLegalMoves(this, false);
-                    for (Move move : moves) {
-                        if (move.getToRow() == i && move.getToCol() == j) {
-                            return true;
-                        }
-                    }
-                }
+        MoveGenerator moveGenerator = new MoveGenerator();
+        // Generate pseudo-legal moves for all pieces,
+        // since we are only checking if the square is attacked, we don't need to worry about king safety
+        System.out.println("Calling from isSquareAttackedBy for" + color + " on square " + (char)('a' + j) + (8 - i));
+        List<Move> moves = moveGenerator.generatePseudoLegalMoves(this);
+        if (moves == null || moves.isEmpty()) {
+            return false;
+        }
+
+        Piece[][] pieces = board.getPieces();
+        for (Move move : moves) {
+            int fromRow = move.getFromRow();
+            int fromCol = move.getFromCol();
+            if (fromRow < 0 || fromRow >= 8 || fromCol < 0 || fromCol >= 8) {
+                continue;
+            }
+            Piece piece = pieces[fromRow][fromCol];
+            if (piece == null || piece.getColor() != color) {
+                continue;
+            }
+            if (move.getToRow() == i && move.getToCol() == j) {
+                return true;
             }
         }
         return false;
@@ -283,14 +302,16 @@ public class GameState {
     }
 
     public GameState copy() {
-        GameState copy = new GameState(new Board());
-        copy.board.setPieces(board.getPieces());
+        GameState copy = new GameState(board.copy());
         copy.sideToMove = sideToMove;
         copy.whiteCastleKingside = whiteCastleKingside;
         copy.whiteCastleQueenside = whiteCastleQueenside;
         copy.blackCastleKingside = blackCastleKingside;
         copy.blackCastleQueenside = blackCastleQueenside;
-        copy.enPassantTargets = new ArrayList<>(enPassantTargets);
+        copy.enPassantTargets = new ArrayList<>();
+        for (Position pos : enPassantTargets) {
+            copy.enPassantTargets.add(new Position(pos.getRow(), pos.getCol()));
+        }
         copy.halfmoveClock = halfmoveClock;
         copy.fullmoveNumber = fullmoveNumber;
         return copy;

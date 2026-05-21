@@ -15,6 +15,13 @@ public class Rook extends Piece {
     }
 
     @Override
+    public Piece copy() {
+        Rook copy = new Rook(color);
+        copyCommonFields(copy);
+        return copy;
+    }
+
+    @Override
     public String toString() {
         String colorInitial = (color == Color.WHITE) ? "W" : "B";
         return colorInitial + "R";

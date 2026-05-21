@@ -16,6 +16,13 @@ public class King extends Piece {
         };
     }
 
+    @Override
+    public Piece copy() {
+        King copy = new King(color);
+        copyCommonFields(copy);
+        return copy;
+    }
+
     public void removeCastleMoves() {
         // Remove castling move types after the rook has moved
         this.validMoveTypes = new MoveType[] {

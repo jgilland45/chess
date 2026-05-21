@@ -16,6 +16,13 @@ public class Queen extends Piece {
     }
 
     @Override
+    public Piece copy() {
+        Queen copy = new Queen(color);
+        copyCommonFields(copy);
+        return copy;
+    }
+
+    @Override
     public String toString() {
         String colorInitial = (color == Color.WHITE) ? "W" : "B";
         return colorInitial + "Q";

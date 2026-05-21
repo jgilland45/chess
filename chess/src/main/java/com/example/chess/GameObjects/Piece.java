@@ -50,6 +50,18 @@ public abstract class Piece {
         this.validMoveTypes = validMoveTypes;
     }
 
+    protected void copyCommonFields(Piece copy) {
+        copy.setHasMoved(hasMoved);
+        if (position != null) {
+            copy.setPosition(new Position(position.getRow(), position.getCol()));
+        }
+        if (validMoveTypes != null) {
+            copy.setValidMoveTypes(validMoveTypes.clone());
+        }
+    }
+
+    public abstract Piece copy();
+
     @Override
     public String toString() {
         return color + " " + type;
