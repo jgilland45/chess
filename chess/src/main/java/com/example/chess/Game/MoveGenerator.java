@@ -98,40 +98,40 @@ public class MoveGenerator implements LegalMoveGenerator {
         }
     }
 
-    private List<Move> addMovePermuations(Move move) {
-        List<Move> moves = new ArrayList<>();
-        // add all promotion options
-        for (Promotion promotion : Promotion.values()) {
-            // add if there is a capture
-            for (boolean capture : new boolean[] {true, false}) {
-                // add if there is a check
-                for (boolean check : new boolean[] {true, false}) {
-                    // add if there is a checkmate
-                    for (boolean checkmate : new boolean[] {true, false}) {
-                        // add if there is kingside castling
-                        for (boolean castleKingside : new boolean[] {true, false}) {
-                            // add if there is queenside castling
-                            for (boolean castleQueenside : new boolean[] {true, false}) {
-                                PieceType promoteTo = switch (promotion) {
-                                    case QUEEN -> PieceType.QUEEN;
-                                    case ROOK -> PieceType.ROOK;
-                                    case BISHOP -> PieceType.BISHOP;
-                                    case KNIGHT -> PieceType.KNIGHT;
-                                    default -> null;
-                                };
-                                Move newMove = new Move(
-                                    move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol(),
-                                    promoteTo, capture, check, checkmate, castleKingside, castleQueenside
-                                );
-                                moves.add(newMove);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return moves;
-    }
+    // private List<Move> addMovePermuations(Move move) {
+    //     List<Move> moves = new ArrayList<>();
+    //     // add all promotion options
+    //     for (Promotion promotion : Promotion.values()) {
+    //         // add if there is a capture
+    //         for (boolean capture : new boolean[] {true, false}) {
+    //             // add if there is a check
+    //             for (boolean check : new boolean[] {true, false}) {
+    //                 // add if there is a checkmate
+    //                 for (boolean checkmate : new boolean[] {true, false}) {
+    //                     // add if there is kingside castling
+    //                     for (boolean castleKingside : new boolean[] {true, false}) {
+    //                         // add if there is queenside castling
+    //                         for (boolean castleQueenside : new boolean[] {true, false}) {
+    //                             PieceType promoteTo = switch (promotion) {
+    //                                 case QUEEN -> PieceType.QUEEN;
+    //                                 case ROOK -> PieceType.ROOK;
+    //                                 case BISHOP -> PieceType.BISHOP;
+    //                                 case KNIGHT -> PieceType.KNIGHT;
+    //                                 default -> null;
+    //                             };
+    //                             Move newMove = new Move(
+    //                                 move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol(),
+    //                                 promoteTo, capture, check, checkmate, castleKingside, castleQueenside
+    //                             );
+    //                             moves.add(newMove);
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return moves;
+    // }
 
     private boolean canCastleKingside(GameState state, Color color) {
         if (color == Color.WHITE) {
@@ -451,17 +451,14 @@ public class MoveGenerator implements LegalMoveGenerator {
             if (targetPiece != null && targetPiece.getColor() == piece.getColor()) {
                 continue; // Can't capture own piece
             } else if (targetPiece != null && targetPiece.getColor() != piece.getColor()) { // Capture enemy piece
-                if (!move.isCapture()) {
-                    continue;
-                }
+                Move moveWithCapture = new Move(
+                    move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol(), move.getPromotion(),
+                    true, move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside()
+                );
+                validMoves.add(moveWithCapture);
             } else {
-                // No piece on target square, but move is marked as capture
-                if (move.isCapture()) {
-                    continue;
-                }
+                validMoves.add(move); // No capture, just a normal move
             }
-
-            validMoves.add(move);
         }
         return validMoves;
     }
@@ -497,12 +494,29 @@ public class MoveGenerator implements LegalMoveGenerator {
             }
 
             if (isPromotionRank(piece.getColor(), toRow)) {
-                if (move.getPromotion() == null) {
-                    continue; // Promotion move must specify a piece to promote to
-                }
+                Move queenPromotionMove = new Move(
+                    move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol(),
+                    PieceType.QUEEN, move.isCapture(), move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside()
+                );
+                Move rookPromotionMove = new Move(
+                    move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol(),
+                    PieceType.ROOK, move.isCapture(), move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside()
+                );
+                Move bishopPromotionMove = new Move(
+                    move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol(),
+                    PieceType.BISHOP, move.isCapture(), move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside()
+                );
+                Move knightPromotionMove = new Move(
+                    move.getFromRow(), move.getFromCol(), move.getToRow(), move.getToCol(),
+                    PieceType.KNIGHT, move.isCapture(), move.isCheck(), move.isCheckmate(), move.isCastleKingside(), move.isCastleQueenside()
+                );
+                validMoves.add(queenPromotionMove);
+                validMoves.add(rookPromotionMove);
+                validMoves.add(bishopPromotionMove);
+                validMoves.add(knightPromotionMove);
+            } else {
+                validMoves.add(move); // Not a promotion move, so we can just add it as is
             }
-
-            validMoves.add(move);
         }
         return validMoves;
     }

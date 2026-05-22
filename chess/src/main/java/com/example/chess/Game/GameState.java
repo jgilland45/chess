@@ -192,6 +192,8 @@ public class GameState {
         // this will look a little weird, since if you pass in "White",
         // you will be checking for black pawns that can be captured en passant by white pawns
 
+        // TODO: ensure the potential en passant target square is actually valid (i.e. the pawn just made a 2-square move from its starting position)
+
         enPassantTargets.clear();
 
         for (int row = 0; row < 8; row++) {
