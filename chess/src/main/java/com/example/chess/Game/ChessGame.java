@@ -25,6 +25,10 @@ public class ChessGame {
         System.out.println(state);
     }
 
+    public GameState getState() {
+        return state;
+    }
+
     public void applySan(String notation) {
         SanMove sanMove = SanParser.parse(notation);
         System.out.println("Calling from applySan for SAN move: " + sanMove);

@@ -223,7 +223,8 @@ public class GameState {
         MoveGenerator moveGenerator = new MoveGenerator();
         // Generate pseudo-legal moves for all pieces,
         // since we are only checking if the square is attacked, we don't need to worry about king safety
-        System.out.println("Calling from isSquareAttackedBy for" + color + " on square " + (char)('a' + j) + (8 - i));
+        
+        // System.out.println("Calling from isSquareAttackedBy for" + color + " on square " + (char)('a' + j) + (8 - i));
         List<Move> moves = moveGenerator.generatePseudoLegalMoves(this);
         if (moves == null || moves.isEmpty()) {
             return false;
@@ -317,5 +318,15 @@ public class GameState {
         copy.halfmoveClock = halfmoveClock;
         copy.fullmoveNumber = fullmoveNumber;
         return copy;
+    }
+
+    public void printValidMoves() {
+        MoveGenerator moveGenerator = new MoveGenerator();
+        List<Move> validMoves = moveGenerator.generateLegalMoves(this, true);
+        System.out.println("Valid moves for " + sideToMove + ":");
+        for (Move move : validMoves) {
+            System.out.print(move + ", ");
+        }
+        System.out.println();
     }
 }

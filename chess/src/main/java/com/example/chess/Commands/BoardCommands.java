@@ -50,4 +50,11 @@ public class BoardCommands {
 		}
 	}
 
+	@Command(name = "valid", description = "Show all valid moves for the current game state", group = "Board",
+			help = "A command that shows all valid moves for the current game state. Usage: valid")
+	public void showValidMoves() {
+		// This would typically involve calling a method on the ChessGame class to get valid moves
+		game.getState().printValidMoves();
+	}
+
 }
