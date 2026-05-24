@@ -70,7 +70,7 @@ public class MoveGenerator implements LegalMoveGenerator {
         List<Move> validMoves = new ArrayList<>(moves);
         validMoves = validateColor(validMoves, state);
         validMoves = validateNotExposeKing(validMoves, state, validateKingSafety);
-        validMoves = validateNotObstructed(validMoves, state);
+        // validMoves = validateNotObstructed(validMoves, state);
         // validMoves = validatePromotion(validMoves, state, validateKingSafety);
         // validMoves = validatePawnCaptures(validMoves, state);
         // validMoves = validateQueensideCastling(validMoves, state);
@@ -435,6 +435,7 @@ public class MoveGenerator implements LegalMoveGenerator {
        }
 
        List<Move> validMoves = new ArrayList<>();
+       Piece[][] pieces = state.getBoard().getPieces();
 
        for (Move move : moves) {
             if (move == null) {
@@ -443,10 +444,19 @@ public class MoveGenerator implements LegalMoveGenerator {
             if (state == null) {
                 continue;
             }
-            
+            int fromRow = move.getFromRow();
+            int fromCol = move.getFromCol();
+            if (fromRow < 0 || fromRow >= 8 || fromCol < 0 || fromCol >= 8) {
+                continue;
+            }
+            Piece movingPiece = pieces[fromRow][fromCol];
+            if (movingPiece == null) {
+                continue;
+            }
+
             GameState copyState = state.copy();
             copyState.applyMoveForValidation(move);
-            if (!copyState.isInCheck(state.getSideToMove())) {
+            if (!copyState.isInCheck(movingPiece.getColor())) {
                 validMoves.add(move);
             }
        } 

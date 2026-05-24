@@ -221,11 +221,11 @@ public class GameState {
 
     public boolean isSquareAttackedBy(int i, int j, Color color) {
         MoveGenerator moveGenerator = new MoveGenerator();
-        // Generate pseudo-legal moves for all pieces,
-        // since we are only checking if the square is attacked, we don't need to worry about king safety
-        
-        // System.out.println("Calling from isSquareAttackedBy for" + color + " on square " + (char)('a' + j) + (8 - i));
+        // Generate pseudo-legal moves for the attacker color only.
+        Color originalSideToMove = sideToMove;
+        sideToMove = color;
         List<Move> moves = moveGenerator.generatePseudoLegalMoves(this);
+        sideToMove = originalSideToMove;
         if (moves == null || moves.isEmpty()) {
             return false;
         }
@@ -242,6 +242,11 @@ public class GameState {
                 continue;
             }
             if (move.getToRow() == i && move.getToCol() == j) {
+                System.out.println(
+                    "Attack on " + (char)('a' + j) + (8 - i) +
+                    " by " + piece.getType() + " " + color +
+                    " from " + (char)('a' + fromCol) + (8 - fromRow)
+                );
                 return true;
             }
         }
@@ -255,7 +260,7 @@ public class GameState {
             for (int j = 0; j < 8; j++) {
                 Piece piece = board.getPieceAt(i, j);
                 if (piece != null && piece.getType() == PieceType.KING && piece.getColor() == color) {
-                    kingPosition = new Position(i, j);
+                    kingPosition = new Position(j, i);
                     break;
                 }
             }
@@ -299,6 +304,22 @@ public class GameState {
         sb.append("\n");
         sb.append("Halfmove clock: ").append(halfmoveClock).append("\n");
         sb.append("Fullmove number: ").append(fullmoveNumber).append("\n");
+        boolean whiteInCheck = isInCheck(Color.WHITE);
+        boolean blackInCheck = isInCheck(Color.BLACK);
+        boolean whiteInCheckmate = false;
+        boolean blackInCheckmate = false;
+        if (whiteInCheck) {
+            List<Move> moves = new MoveGenerator().generatePseudoLegalMoves(this);
+            whiteInCheckmate = moves.isEmpty();
+        }
+        if (blackInCheck) {
+            List<Move> moves = new MoveGenerator().generatePseudoLegalMoves(this);
+            blackInCheckmate = moves.isEmpty();
+        }
+        sb.append("White In Check: ").append(whiteInCheck).append("\n");
+        sb.append("Black In Check: ").append(blackInCheck).append("\n");
+        sb.append("White In Checkmate: ").append(whiteInCheckmate).append("\n");
+        sb.append("Black In Checkmate: ").append(blackInCheckmate).append("\n");
         sb.append("Board:\n");
         sb.append(board.toString());
         return sb.toString();
