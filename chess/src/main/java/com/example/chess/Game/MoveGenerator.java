@@ -70,7 +70,7 @@ public class MoveGenerator implements LegalMoveGenerator {
         List<Move> validMoves = new ArrayList<>(moves);
         validMoves = validateColor(validMoves, state);
         validMoves = validateNotExposeKing(validMoves, state, validateKingSafety);
-        // validMoves = validateNotObstructed(validMoves, state);
+        validMoves = validateNotObstructed(validMoves, state);
         // validMoves = validatePromotion(validMoves, state, validateKingSafety);
         // validMoves = validatePawnCaptures(validMoves, state);
         // validMoves = validateQueensideCastling(validMoves, state);
