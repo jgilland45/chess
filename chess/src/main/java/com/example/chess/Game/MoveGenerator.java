@@ -71,7 +71,7 @@ public class MoveGenerator implements LegalMoveGenerator {
         validMoves = validateColor(validMoves, state);
         validMoves = validateNotExposeKing(validMoves, state, validateKingSafety);
         validMoves = validateNotObstructed(validMoves, state);
-        // validMoves = validatePromotion(validMoves, state, validateKingSafety);
+        validMoves = validatePromotion(validMoves, state, validateKingSafety);
         // validMoves = validatePawnCaptures(validMoves, state);
         // validMoves = validateQueensideCastling(validMoves, state);
         // validMoves = validateKingsideCastling(validMoves, state);
