@@ -198,21 +198,23 @@ public class GameState {
 
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
-                Piece piece = board.getPieceAt(row, col);
-                if (piece != null && piece.getType() == PieceType.PAWN && piece.getColor() != color) {
-                    // check if this pawn can be captured en passant by any of the given color's pawns
-                    int direction = (color == Color.WHITE) ? -1 : 1;
-                    if (col > 0) {
-                        Piece leftPawn = board.getPieceAt(row + direction, col - 1);
-                        if (leftPawn != null && leftPawn.getType() == PieceType.PAWN && leftPawn.getColor() == color) {
-                            enPassantTargets.add(new Position(row, col));
-                        }
+                Piece attackingPawn = board.getPieceAt(row, col);
+                if (attackingPawn == null || attackingPawn.getType() != PieceType.PAWN || attackingPawn.getColor() != color) {
+                    continue;
+                }
+                int forwardDir = (color == Color.WHITE) ? -1 : 1;
+                // Check left diagonal
+                if (col > 0) {
+                    Piece targetPawn = board.getPieceAt(row, col - 1);
+                    if (targetPawn != null && targetPawn.getType() == PieceType.PAWN && targetPawn.getColor() != color) {
+                        enPassantTargets.add(new Position(row + forwardDir, col - 1));
                     }
-                    if (col < 7) {
-                        Piece rightPawn = board.getPieceAt(row + direction, col + 1);
-                        if (rightPawn != null && rightPawn.getType() == PieceType.PAWN && rightPawn.getColor() == color) {
-                            enPassantTargets.add(new Position(row, col));
-                        }
+                }
+                // Check right diagonal
+                if (col < 7) {
+                    Piece targetPawn = board.getPieceAt(row, col + 1);
+                    if (targetPawn != null && targetPawn.getType() == PieceType.PAWN && targetPawn.getColor() != color) {
+                        enPassantTargets.add(new Position(row + forwardDir, col + 1));
                     }
                 }
             }

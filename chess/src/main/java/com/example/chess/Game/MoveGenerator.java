@@ -72,7 +72,7 @@ public class MoveGenerator implements LegalMoveGenerator {
         validMoves = validateNotExposeKing(validMoves, state, validateKingSafety);
         validMoves = validateNotObstructed(validMoves, state);
         validMoves = validatePromotion(validMoves, state, validateKingSafety);
-        // validMoves = validatePawnCaptures(validMoves, state);
+        validMoves = validatePawnCaptures(validMoves, state);
         // validMoves = validateQueensideCastling(validMoves, state);
         // validMoves = validateKingsideCastling(validMoves, state);
         // if (validateCheckMarkers) {
@@ -155,6 +155,10 @@ public class MoveGenerator implements LegalMoveGenerator {
         } else {
             return state.canBlackCastleQueenside();
         }
+    }
+
+    private boolean isDiagonalMove(int fromRow, int fromCol, int toRow, int toCol) {
+        return Math.abs(toRow - fromRow) == Math.abs(toCol - fromCol);
     }
 
     private void addValidPawnMoves(List<Move> moves, Piece piece, int fromRow, int fromCol, GameState state, boolean validateKingSafety) {
@@ -602,7 +606,7 @@ public class MoveGenerator implements LegalMoveGenerator {
         }
         return validMoves;
     }
-
+    
     private List<Move> validatePawnCaptures(List<Move> moves, GameState state) {
         /*
             If the move is a pawn move that could be a capture, ensures that there is an opponent's piece on the target square (or that it's a valid en passant capture). Otherwise, returns the move.
@@ -612,6 +616,8 @@ public class MoveGenerator implements LegalMoveGenerator {
         }
 
         List<Move> validMoves = new ArrayList<>();
+        List<Position> enPassantTargets = state.getEnPassantTargets();
+        System.out.println("En passant targets: " + enPassantTargets);
 
         for (Move move : moves) {
             if (move == null) {
@@ -633,59 +639,24 @@ public class MoveGenerator implements LegalMoveGenerator {
                 validMoves.add(move); // Not a pawn move
                 continue;
             }
+
+            validMoves.add(move); // todo: remove
+
+            // If there are valid en passant targets, ensure the move is an en passant capture
+            // if (enPassantTargets != null && !enPassantTargets.isEmpty()) {
+            //     boolean isEnPassantCapture = false;
+            //     for (Position enPassantTarget : enPassantTargets) {
+            //         if (toRow == enPassantTarget.getRow() && toCol == enPassantTarget.getCol()) {
+            //             isEnPassantCapture = true;
+            //             break;
+            //         }
+            //     }
+            //     if (isEnPassantCapture) {
+            //         validMoves.add(move); // Valid en passant capture move
+            //         continue;
+            //     }
+            // }
             
-            // If the move is a diagonal move, it must be a capture (either normal or en passant)
-            if (Math.abs(toCol - fromCol) == 1 && ((piece.getColor() == Color.WHITE && toRow == fromRow - 1) || (piece.getColor() == Color.BLACK && toRow == fromRow + 1))) {
-                // This is a potential en passant capture
-                List<Position> enPassantTargets = state.getEnPassantTargets();
-                if (enPassantTargets == null) {
-                    // No en passant targets, but this could be a capture move, so check if there's an opponent's piece on the target square
-                    Piece targetPiece = pieces[toRow][toCol];
-                    if (targetPiece != null && targetPiece.getColor() != piece.getColor()) {
-                        if (!move.isCapture()) {
-                            continue; // Move must be marked as capture if there is an opponent's piece on the target square
-                        } else {
-                            validMoves.add(move); // Valid capture move
-                        }
-                    } else {
-                        if (move.isCapture()) {
-                            continue; // Move is marked as capture, but there is no opponent's piece on the target square
-                        } else {
-                            validMoves.add(move); // Valid non-capture move
-                        }
-                    }
-                } else if (enPassantTargets.contains(new Position(toRow, toCol))) {
-                    // Must be an en passant capture or a valid capture move
-                    if (!move.isCapture()) {
-                        continue; // Move must be marked as capture if the target square is an en passant target
-                    } else {
-                        validMoves.add(move); // Valid en passant capture
-                    }
-                } else {
-                    // cannot be an en passant capture, but there could still be an opponent's piece on the target square
-                    Piece targetPiece = pieces[toRow][toCol];
-                    if (targetPiece != null && targetPiece.getColor() != piece.getColor()) {
-                        if (!move.isCapture()) {
-                            continue; // Move must be marked as capture if there is an opponent's piece on the target square
-                        } else {
-                            validMoves.add(move); // Valid capture move
-                        }
-                    } else {
-                        if (move.isCapture()) {
-                            continue; // Move is marked as capture, but there is no opponent's piece on the target square
-                        } else {
-                            validMoves.add(move); // Valid non-capture move
-                        }
-                    }
-                }
-            } else {
-                // Not a diagonal move, so it can't be a capture
-                if (move.isCapture()) {
-                    continue; // Move is marked as capture, but it's not a diagonal move
-                } else {
-                    validMoves.add(move); // Valid non-capture move
-                }
-            }
         }
         return validMoves;
     }
