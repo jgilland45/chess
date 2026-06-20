@@ -18,4 +18,10 @@ public class Position {
     public int getCol() {
         return x;
     }
+
+    public String toString() {
+        char file = (char) ('a' + x);
+        int rank = y + 1;
+        return "" + file + rank;
+    }
 }

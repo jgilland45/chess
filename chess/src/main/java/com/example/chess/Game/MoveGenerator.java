@@ -642,21 +642,26 @@ public class MoveGenerator implements LegalMoveGenerator {
 
             validMoves.add(move); // todo: remove
 
-            // If there are valid en passant targets, ensure the move is an en passant capture
-            // if (enPassantTargets != null && !enPassantTargets.isEmpty()) {
-            //     boolean isEnPassantCapture = false;
-            //     for (Position enPassantTarget : enPassantTargets) {
-            //         if (toRow == enPassantTarget.getRow() && toCol == enPassantTarget.getCol()) {
-            //             isEnPassantCapture = true;
-            //             break;
-            //         }
+            // // NOTE: non-diagonal captures already invalidated by validateNotObstructed
+            
+            // // Check if move is a capture
+            // if (move.isCapture()) {
+            //     // Move must be some kind of diagonal move
+            //     if (fromCol == toCol) {
+            //         continue; // This is not a diagonal move, so it can't be a capture
             //     }
-            //     if (isEnPassantCapture) {
-            //         validMoves.add(move); // Valid en passant capture move
+            //     // First check for normal capture
+            //     Piece targetPiece = pieces[toRow][toCol];
+            //     if (targetPiece == null || targetPiece.getColor() == piece.getColor()) {
+            //         // No piece to capture or trying to capture own piece, so check for en passant
+            //         Position targetPosition = new Position(toRow, toCol);
+            // } else {
+            //     // Move not marked as a capture
+            //     if (fromCol != toCol) {
+            //         // This is a diagonal move, which is not a capture
             //         continue;
             //     }
             // }
-            
         }
         return validMoves;
     }

@@ -207,14 +207,14 @@ public class GameState {
                 if (col > 0) {
                     Piece targetPawn = board.getPieceAt(row, col - 1);
                     if (targetPawn != null && targetPawn.getType() == PieceType.PAWN && targetPawn.getColor() != color) {
-                        enPassantTargets.add(new Position(row + forwardDir, col - 1));
+                        enPassantTargets.add(new Position(col - 1, row + forwardDir));
                     }
                 }
                 // Check right diagonal
                 if (col < 7) {
                     Piece targetPawn = board.getPieceAt(row, col + 1);
                     if (targetPawn != null && targetPawn.getType() == PieceType.PAWN && targetPawn.getColor() != color) {
-                        enPassantTargets.add(new Position(row + forwardDir, col + 1));
+                        enPassantTargets.add(new Position(col + 1, row + forwardDir));
                     }
                 }
             }
@@ -301,7 +301,7 @@ public class GameState {
         sb.append("\n");
         sb.append("En passant targets: ");
         for (Position pos : enPassantTargets) {
-            sb.append((char)('a' + pos.getCol())).append(8 - pos.getRow()).append(" ");
+            sb.append(pos.toString()).append(" ");
         }
         sb.append("\n");
         sb.append("Halfmove clock: ").append(halfmoveClock).append("\n");
